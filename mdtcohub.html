@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MDT.cohub — AI Tools Directory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #141414;
+      --border: #1e1e1e;
+      --gold: #e8c97a;
+      --gold-dim: rgba(232,201,122,0.15);
+      --text: #f0ede8;
+      --muted: #5a5650;
+      --muted2: #3a3630;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* CURSOR */
+    .cursor { position: fixed; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); mix-blend-mode: difference; transition: width .15s, height .15s; }
+    .cursor-ring { position: fixed; width: 32px; height: 32px; border: 1px solid rgba(232,201,122,0.4); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); }
+
+    /* NOISE */
+    body::after { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events:none; z-index:999; }
+
+    /* ── LOGO SVG (obsidian M in circle, gold accents) ── */
+    .logo-svg { display:block; }
+
+    /* ══ NAV ══ */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.9);
+      backdrop-filter: blur(14px);
+    }
+    .nav-brand { display:flex; align-items:center; gap:.8rem; text-decoration:none; }
+    .nav-wordmark { font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:.18em; color:var(--text); line-height:1; }
+    .nav-wordmark span { color:var(--gold); }
+    .nav-links { display:flex; gap:2.2rem; list-style:none; }
+    .nav-links a { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); text-decoration:none; transition:color .2s; }
+    .nav-links a:hover { color:var(--text); }
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .nav-search {
+      background: var(--surface); border: 1px solid var(--border);
+      padding: .5rem 1rem; color: var(--muted); font-family:'DM Mono',monospace;
+      font-size:.68rem; letter-spacing:.08em; outline:none; width:200px;
+      transition: border-color .2s;
+    }
+    .nav-search:focus { border-color: var(--gold); color: var(--text); }
+    .nav-search::placeholder { color: var(--muted2); }
+    .nav-cta { font-family:'DM Mono',monospace; font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; background:var(--gold); color:#0a0a0a; padding:.55rem 1.3rem; border:none; cursor:none; font-weight:500; transition:opacity .2s; }
+    .nav-cta:hover { opacity:.85; }
+
+    /* ══ HERO ══ */
+    .hero {
+      min-height: 100vh; padding-top: 76px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      position: relative; overflow: hidden;
+    }
+    .hero-left { display:flex; flex-direction:column; justify-content:center; padding:5rem 3rem; position:relative; z-index:2; }
+    .hero-grid { position:absolute; inset:0; background-image: linear-gradient(var(--border) 1px,transparent 1px), linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size:55px 55px; opacity:.3; }
+    .hero-tag { font-size:.65rem; letter-spacing:.25em; text-transform:uppercase; color:var(--gold); margin-bottom:1.8rem; display:flex; align-items:center; gap:.7rem; animation:fadeUp .8s .2s both; }
+    .hero-tag::before { content:''; display:inline-block; width:28px; height:1px; background:var(--gold); }
+    .hero-h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(4rem,7vw,7.5rem); line-height:.92; letter-spacing:.02em; margin-bottom:2rem; animation:fadeUp .8s .35s both; }
+    .hero-h1 em { font-style:normal; color:var(--gold); display:block; }
+    .hero-p { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.2rem; line-height:1.7; color:#7a746e; max-width:460px; margin-bottom:2.5rem; animation:fadeUp .8s .5s both; }
+    .hero-actions { display:flex; align-items:center; gap:2rem; animation:fadeUp .8s .65s both; }
+    .btn-primary { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; background:var(--gold); color:#0a0a0a; padding:.9rem 2rem; border:none; cursor:none; font-weight:500; text-decoration:none; transition:opacity .2s,transform .2s; }
+    .btn-primary:hover { opacity:.85; transform:translateY(-2px); }
+    .btn-ghost { font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); text-decoration:none; transition:color .2s; }
+    .btn-ghost:hover { color:var(--text); }
+    .btn-ghost::after { content:' →'; }
+    .hero-stats { margin-top:4rem; display:flex; gap:2.5rem; animation:fadeUp .8s .8s both; }
+    .stat-num { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--text); line-height:1; }
+    .stat-num span { color:var(--gold); }
+    .stat-label { font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-top:.25rem; }
+
+    /* hero right */
+    .hero-right { border-left:1px solid var(--border); position:relative; overflow:hidden; }
+    .hero-glow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:500px; height:500px; background:radial-gradient(circle,rgba(232,201,122,.1) 0%,transparent 65%); pointer-events:none; }
+    .hero-logo-center { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem; }
+    .hero-logo-ring { position:relative; }
+    .hero-logo-ring::before { content:''; position:absolute; inset:-20px; border:1px solid var(--border); border-radius:50%; }
+    .hero-logo-ring::after { content:''; position:absolute; inset:-40px; border:1px solid rgba(232,201,122,.08); border-radius:50%; }
+    .hero-logo-tagline { font-size:.58rem; letter-spacing:.3em; text-transform:uppercase; color:var(--muted); text-align:center; }
+
+    /* ══ MARQUEE ══ */
+    .marquee-wrap { border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:.9rem 0; background:var(--surface); }
+    .marquee-track { display:flex; gap:2.5rem; animation:marquee 25s linear infinite; white-space:nowrap; }
+    .marquee-track span { font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); flex-shrink:0; }
+    .marquee-track b { color:var(--gold); font-weight:400; }
+
+    /* ══ FILTER BAR ══ */
+    .filter-bar { padding:2rem 3rem; border-bottom:1px solid var(--border); background:var(--surface); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .filter-label { font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-right:.5rem; }
+    .filter-btn { font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; padding:.45rem 1rem; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:none; transition:all .2s; }
+    .filter-btn:hover, .filter-btn.active { border-color:var(--gold); color:var(--gold); background:var(--gold-dim); }
+
+    /* ══ TOOLS GRID ══ */
+    .tools-section { padding:3rem; }
+    .tools-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2rem; }
+    .tools-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:.05em; color:var(--text); }
+    .tools-count { font-size:.6rem; letter-spacing:.15em; color:var(--muted); }
+
+    .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1px; background:var(--border); }
+
+    .tool-card {
+      background:var(--surface); padding:1.6rem;
+      position:relative; overflow:hidden;
+      transition:background .2s; cursor:none;
+    }
+    .tool-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .3s; }
+    .tool-card:hover { background:var(--surface2); }
+    .tool-card:hover::before { transform:scaleX(1); }
+
+    .tc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1rem; gap:.5rem; }
+    .tc-icon { width:40px; height:40px; background:var(--bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .tc-badges { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; }
+    .tc-badge { font-size:.52rem; letter-spacing:.1em; text-transform:uppercase; padding:.18rem .5rem; }
+    .tc-badge.featured { border:1px solid var(--gold); color:var(--gold); }
+    .tc-badge.new { border:1px solid #c8f0e0; color:#c8f0e0; }
+    .tc-badge.top { border:1px solid #e8a07a; color:#e8a07a; }
+    .tc-badge.free { border:1px solid #a0c8e8; color:#a0c8e8; }
+
+    .tc-name { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:.05em; color:var(--text); margin-bottom:.25rem; }
+    .tc-cat { font-size:.58rem; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); margin-bottom:.7rem; }
+    .tc-desc { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:.9rem; line-height:1.55; color:#5a5650; }
+    .tc-footer { margin-top:1rem; display:flex; align-items:center; justify-content:space-between; }
+    .tc-score { display:flex; align-items:baseline; gap:.3rem; }
+    .tc-score-num { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--gold); line-height:1; }
+    .tc-score-den { font-size:.55rem; color:var(--muted); }
+    .tc-pricing { font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+
+    /* ══ CTA ══ */
+    .cta-section { border-top:1px solid var(--border); padding:6rem 3rem; text-align:center; position:relative; overflow:hidden; }
+    .cta-glow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:600px; height:400px; background:radial-gradient(ellipse,rgba(232,201,122,.07) 0%,transparent 65%); pointer-events:none; }
+    .cta-h2 { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.5rem,5vw,5rem); line-height:.95; margin-bottom:1.2rem; position:relative; }
+    .cta-h2 em { font-style:normal; color:var(--gold); display:block; }
+    .cta-p { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.15rem; color:var(--muted); margin-bottom:2.5rem; position:relative; }
+    .cta-form { display:flex; justify-content:center; max-width:420px; margin:0 auto; position:relative; }
+    .cta-input { flex:1; background:var(--surface); border:1px solid var(--border); border-right:none; padding:.9rem 1.2rem; color:var(--text); font-family:'DM Mono',monospace; font-size:.72rem; outline:none; transition:border-color .2s; }
+    .cta-input:focus { border-color:var(--gold); }
+    .cta-input::placeholder { color:var(--muted); }
+    .cta-btn { font-family:'DM Mono',monospace; font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; background:var(--gold); color:#0a0a0a; padding:.9rem 1.5rem; border:none; cursor:none; font-weight:500; }
+
+    /* ══ FOOTER ══ */
+    footer { border-top:1px solid var(--border); padding:2rem 3rem; display:flex; align-items:center; justify-content:space-between; }
+    .footer-brand { display:flex; align-items:center; gap:.7rem; }
+    .footer-name { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.18em; color:var(--muted); }
+    .footer-name span { color:var(--gold); }
+    .footer-note { font-size:.58rem; letter-spacing:.15em; text-transform:uppercase; color:var(--muted2); }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s ease,transform .7s ease; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* spin ring on logo */
+    .spin-ring { animation: spin 18s linear infinite; transform-origin: center; }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <a href="#" class="nav-brand">
+    <!-- OBSIDIAN LOGO: M mark, dark fill, gold circle accent -->
+    <svg class="logo-svg" width="38" height="38" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="47" stroke="#e8c97a" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="40" stroke="#2a2520" stroke-width=".5"/>
+      <!-- M geometric form in obsidian/dark ivory -->
+      <polygon points="20,74 20,33 46,56" fill="#f0ede8"/>
+      <polygon points="46,56 72,30 72,74 60,74 60,46 46,56" fill="#f0ede8"/>
+      <!-- diagonal slash cutout (gold) -->
+      <polygon points="36,74 56,44 64,51 44,81" fill="#e8c97a"/>
+      <!-- corner ticks on circle -->
+      <line x1="50" y1="3" x2="50" y2="10" stroke="#e8c97a" stroke-width="1.5"/>
+      <line x1="50" y1="90" x2="50" y2="97" stroke="#e8c97a" stroke-width="1.5"/>
+      <line x1="3" y1="50" x2="10" y2="50" stroke="#e8c97a" stroke-width="1.5"/>
+      <line x1="90" y1="50" x2="97" y2="50" stroke="#e8c97a" stroke-width="1.5"/>
+    </svg>
+    <div>
+      <div class="nav-wordmark">MDT<span>.cohub</span></div>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#tools">Directory</a></li>
+    <li><a href="#">Categories</a></li>
+    <li><a href="#">Reviews</a></li>
+    <li><a href="#">Submit Tool</a></li>
+  </ul>
+  <div class="nav-right">
+    <input class="nav-search" type="text" placeholder="Search 50+ tools..."/>
+    <button class="nav-cta">Early Access</button>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-left">
+    <div class="hero-tag">The AI Tools Directory for Builders</div>
+    <h1 class="hero-h1">
+      Every Tool.<br>
+      <em>One Hub.</em>
+      Zero Noise.
+    </h1>
+    <p class="hero-p">
+      MDT.cohub curates and ranks the world's most powerful AI tools — so ambitious entrepreneurs stop searching and start building.
+    </p>
+    <div class="hero-actions">
+      <a href="#tools" class="btn-primary">Browse 50+ Tools</a>
+      <a href="#" class="btn-ghost">How it works</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">50<span>+</span></div>
+        <div class="stat-label">Tools Listed</div>
+      </div>
+      <div>
+        <div class="stat-num">12<span>+</span></div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div>
+        <div class="stat-num">100<span>%</span></div>
+        <div class="stat-label">Curated</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-glow"></div>
+    <div class="hero-logo-center">
+      <div class="hero-logo-ring">
+        <svg width="160" height="160" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- outer spinning dashed ring -->
+          <circle cx="50" cy="50" r="47" stroke="#2a2520" stroke-width=".5" stroke-dasharray="4 6" class="spin-ring"/>
+          <circle cx="50" cy="50" r="47" stroke="#e8c97a" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="40" stroke="#2a2520" stroke-width=".5"/>
+          <polygon points="20,74 20,33 46,56" fill="#f0ede8"/>
+          <polygon points="46,56 72,30 72,74 60,74 60,46 46,56" fill="#f0ede8"/>
+          <polygon points="36,74 56,44 64,51 44,81" fill="#e8c97a"/>
+          <line x1="50" y1="3" x2="50" y2="10" stroke="#e8c97a" stroke-width="2"/>
+          <line x1="50" y1="90" x2="50" y2="97" stroke="#e8c97a" stroke-width="2"/>
+          <line x1="3" y1="50" x2="10" y2="50" stroke="#e8c97a" stroke-width="2"/>
+          <line x1="90" y1="50" x2="97" y2="50" stroke="#e8c97a" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="hero-logo-tagline">MDT.cohub — Curated Since 2025</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MARQUEE ══ -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>Automation <b>·</b></span><span>Content Creation <b>·</b></span><span>Sales Intelligence <b>·</b></span>
+    <span>Voice AI <b>·</b></span><span>Customer Support <b>·</b></span><span>Data & Analytics <b>·</b></span>
+    <span>Code Generation <b>·</b></span><span>Marketing <b>·</b></span><span>Image Generation <b>·</b></span>
+    <span>Research <b>·</b></span><span>Productivity <b>·</b></span><span>HR & Recruiting <b>·</b></span>
+    <span>Automation <b>·</b></span><span>Content Creation <b>·</b></span><span>Sales Intelligence <b>·</b></span>
+    <span>Voice AI <b>·</b></span><span>Customer Support <b>·</b></span><span>Data & Analytics <b>·</b></span>
+    <span>Code Generation <b>·</b></span><span>Marketing <b>·</b></span><span>Image Generation <b>·</b></span>
+    <span>Research <b>·</b></span><span>Productivity <b>·</b></span><span>HR & Recruiting <b>·</b></span>
+  </div>
+</div>
+
+<!-- ══ FILTER BAR ══ -->
+<div class="filter-bar" id="tools">
+  <span class="filter-label">Filter:</span>
+  <button class="filter-btn active" onclick="filterTools('all',this)">All</button>
+  <button class="filter-btn" onclick="filterTools('automation',this)">Automation</button>
+  <button class="filter-btn" onclick="filterTools('content',this)">Content</button>
+  <button class="filter-btn" onclick="filterTools('sales',this)">Sales</button>
+  <button class="filter-btn" onclick="filterTools('research',this)">Research</button>
+  <button class="filter-btn" onclick="filterTools('image',this)">Image & Video</button>
+  <button class="filter-btn" onclick="filterTools('code',this)">Code</button>
+  <button class="filter-btn" onclick="filterTools('productivity',this)">Productivity</button>
+  <button class="filter-btn" onclick="filterTools('voice',this)">Voice</button>
+  <button class="filter-btn" onclick="filterTools('marketing',this)">Marketing</button>
+  <button class="filter-btn" onclick="filterTools('data',this)">Data</button>
+  <button class="filter-btn" onclick="filterTools('hr',this)">HR</button>
+</div>
+
+<!-- ══ TOOLS GRID ══ -->
+<section class="tools-section">
+  <div class="tools-header">
+    <div class="tools-title">The Directory</div>
+    <div class="tools-count" id="toolsCount">50 tools</div>
+  </div>
+  <div class="tools-grid" id="toolsGrid"></div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <h2 class="cta-h2 reveal">Get Early<br><em>Access.</em></h2>
+  <p class="cta-p reveal">Be first when MDT.cohub launches. No spam. Just signal.</p>
+  <div class="cta-form reveal">
+    <input class="cta-input" type="email" placeholder="your@email.com"/>
+    <button class="cta-btn">Notify Me</button>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-brand">
+    <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="47" stroke="#e8c97a" stroke-width="1.5"/>
+      <polygon points="20,74 20,33 46,56" fill="#f0ede8"/>
+      <polygon points="46,56 72,30 72,74 60,74 60,46 46,56" fill="#f0ede8"/>
+      <polygon points="36,74 56,44 64,51 44,81" fill="#e8c97a"/>
+    </svg>
+    <div class="footer-name">MDT<span>.cohub</span></div>
+  </div>
+  <div class="footer-note">© 2025 MDT.cohub — Built by Midhat</div>
+</footer>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+(function animRing(){ rx+=(mx-rx)*.1; ry+=(my-ry)*.1; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); })();
+
+// ── TOOLS DATA ──
+const tools = [
+  { name:'ChatGPT', cat:'productivity', icon:'💬', desc:'The world\'s most widely used AI assistant. Draft, brainstorm, analyze, and automate in seconds.', score:9.5, pricing:'Free / $20', badge:'featured' },
+  { name:'Claude', cat:'productivity', icon:'✦', desc:'Anthropic\'s powerful AI assistant built for nuanced reasoning, long documents, and deep analysis.', score:9.4, pricing:'Free / $20', badge:'featured' },
+  { name:'Perplexity', cat:'research', icon:'◎', desc:'Real-time AI search with cited sources. Replace hours of browsing with minutes of clarity.', score:9.1, pricing:'Free / $20', badge:'top' },
+  { name:'Midjourney', cat:'image', icon:'🎨', desc:'Industry-leading AI image generation. Create stunning visuals from text prompts.', score:9.3, pricing:'From $10', badge:'featured' },
+  { name:'Notion AI', cat:'productivity', icon:'📄', desc:'AI built into your workspace. Summarize docs, generate content, and automate notes.', score:8.8, pricing:'$10 add-on', badge:'' },
+  { name:'Zapier AI', cat:'automation', icon:'⚡', desc:'Connect 6,000+ apps and automate workflows with natural language — no code required.', score:9.0, pricing:'Free / $20', badge:'featured' },
+  { name:'Synthflow', cat:'voice', icon:'📞', desc:'AI phone agents that handle inbound and outbound calls like a trained human rep.', score:8.9, pricing:'From $29', badge:'new' },
+  { name:'Copy.ai', cat:'content', icon:'✍️', desc:'Generate sales copy, blog posts, emails, and ad creatives at scale in seconds.', score:8.5, pricing:'Free / $36', badge:'' },
+  { name:'Jasper', cat:'content', icon:'🖊️', desc:'Enterprise-grade AI content platform with brand voice controls and team workflows.', score:8.6, pricing:'From $39', badge:'' },
+  { name:'HubSpot AI', cat:'sales', icon:'🎯', desc:'AI-powered CRM with smart content suggestions, email sequences, and deal forecasting.', score:8.7, pricing:'Free / Paid', badge:'top' },
+  { name:'Runway ML', cat:'image', icon:'🎬', desc:'Professional AI video generation and editing. Gen-2 creates stunning cinematic footage.', score:9.0, pricing:'From $12', badge:'featured' },
+  { name:'ElevenLabs', cat:'voice', icon:'🎙️', desc:'Hyper-realistic AI voice cloning and text-to-speech. Build voice apps in minutes.', score:9.2, pricing:'Free / $5', badge:'top' },
+  { name:'GitHub Copilot', cat:'code', icon:'💻', desc:'AI pair programmer that writes code, suggests completions, and explains complex logic.', score:9.1, pricing:'$10/mo', badge:'featured' },
+  { name:'Cursor', cat:'code', icon:'⌨️', desc:'AI-first code editor. Chat with your codebase and let AI handle the heavy lifting.', score:9.3, pricing:'Free / $20', badge:'new' },
+  { name:'Make.com', cat:'automation', icon:'🔄', desc:'Visual automation platform. Build complex multi-step workflows without writing a line of code.', score:8.9, pricing:'Free / $9', badge:'' },
+  { name:'Loom AI', cat:'productivity', icon:'📹', desc:'Record and share videos instantly. AI generates summaries, titles, and action items.', score:8.4, pricing:'Free / $12', badge:'' },
+  { name:'Descript', cat:'content', icon:'✂️', desc:'Edit video and audio by editing text. AI removes filler words and background noise automatically.', score:8.8, pricing:'Free / $12', badge:'' },
+  { name:'Apollo.io', cat:'sales', icon:'🚀', desc:'AI-powered sales intelligence with 265M contacts. Find, engage, and close prospects faster.', score:8.9, pricing:'Free / $49', badge:'top' },
+  { name:'Instantly AI', cat:'sales', icon:'📧', desc:'Cold email automation with AI personalization. Scale outreach without sacrificing quality.', score:8.7, pricing:'From $37', badge:'' },
+  { name:'Surfer SEO', cat:'marketing', icon:'🌊', desc:'AI-driven content optimization. Write articles that rank on Google with real-time guidance.', score:8.6, pricing:'From $89', badge:'' },
+  { name:'Otter.ai', cat:'productivity', icon:'📝', desc:'AI meeting transcription with speaker identification. Never take notes in a meeting again.', score:8.5, pricing:'Free / $10', badge:'' },
+  { name:'Beautiful.ai', cat:'content', icon:'📊', desc:'AI-powered presentation builder. Create stunning decks in minutes with smart layouts.', score:8.3, pricing:'Free / $12', badge:'' },
+  { name:'Typeface', cat:'content', icon:'🔤', desc:'Enterprise AI content platform. Create on-brand visuals and copy at unprecedented speed.', score:8.4, pricing:'Enterprise', badge:'' },
+  { name:'Fireflies.ai', cat:'productivity', icon:'🔥', desc:'AI notetaker that records, transcribes, and analyzes your meetings automatically.', score:8.6, pricing:'Free / $10', badge:'' },
+  { name:'Writesonic', cat:'content', icon:'📖', desc:'AI writing assistant for blogs, ads, and landing pages. Includes Chatsonic for research.', score:8.2, pricing:'Free / $16', badge:'' },
+  { name:'Lavender', cat:'sales', icon:'💜', desc:'AI email coach that scores your cold emails in real time and suggests improvements.', score:8.5, pricing:'Free / $29', badge:'new' },
+  { name:'Framer AI', cat:'marketing', icon:'🖼️', desc:'Design and publish AI-generated websites in seconds. No coding or design skills required.', score:8.7, pricing:'Free / $10', badge:'' },
+  { name:'Tome', cat:'content', icon:'📚', desc:'AI-native storytelling format. Build beautiful narratives that go beyond slides.', score:8.1, pricing:'Free / $16', badge:'' },
+  { name:'Grain', cat:'productivity', icon:'🌾', desc:'AI video highlights from your calls. Auto-clip the best moments and share instantly.', score:8.3, pricing:'Free / $15', badge:'' },
+  { name:'Bardeen', cat:'automation', icon:'🤖', desc:'AI automation for your browser. Automate repetitive web tasks with natural language.', score:8.4, pricing:'Free / $10', badge:'new' },
+  { name:'Phind', cat:'code', icon:'🔍', desc:'AI search engine built for developers. Gets accurate technical answers with code examples.', score:8.6, pricing:'Free / $17', badge:'' },
+  { name:'Tabnine', cat:'code', icon:'🗂️', desc:'AI code completion trained on your codebase. Works with all major IDEs and languages.', score:8.3, pricing:'Free / $12', badge:'' },
+  { name:'Semrush AI', cat:'marketing', icon:'📈', desc:'AI-enhanced SEO platform. Keyword research, competitor analysis, and content planning.', score:8.8, pricing:'From $130', badge:'top' },
+  { name:'Vidyo.ai', cat:'image', icon:'🎥', desc:'Repurpose long videos into short viral clips for social media using AI auto-editing.', score:8.2, pricing:'Free / $29', badge:'' },
+  { name:'Murf AI', cat:'voice', icon:'🔊', desc:'Studio-quality AI voiceovers in 120+ voices and 20 languages for any content.', score:8.5, pricing:'Free / $19', badge:'' },
+  { name:'Lexi', cat:'hr', icon:'👥', desc:'AI-powered HR assistant for onboarding, policy Q&A, and employee engagement.', score:8.1, pricing:'From $49', badge:'new' },
+  { name:'Textio', cat:'hr', icon:'📋', desc:'AI augmented writing for job listings. Remove bias and attract better candidates.', score:8.4, pricing:'Enterprise', badge:'' },
+  { name:'Workato AI', cat:'automation', icon:'⚙️', desc:'Enterprise automation platform with AI-powered workflow suggestions and error handling.', score:8.7, pricing:'Enterprise', badge:'' },
+  { name:'Gong', cat:'sales', icon:'🔔', desc:'Revenue intelligence platform. AI analyzes sales calls to identify winning behaviors.', score:9.0, pricing:'Enterprise', badge:'top' },
+  { name:'Tableau AI', cat:'data', icon:'📉', desc:'AI-powered analytics and visualization. Ask questions of your data in plain English.', score:8.6, pricing:'From $70', badge:'' },
+  { name:'Census AI', cat:'data', icon:'🗃️', desc:'Sync your data warehouse to business tools with AI-assisted transformation logic.', score:8.3, pricing:'Free / $500', badge:'' },
+  { name:'Akkio', cat:'data', icon:'🧠', desc:'No-code AI for business analysts. Build forecasting models without a data scientist.', score:8.2, pricing:'From $49', badge:'' },
+  { name:'Stable Diffusion', cat:'image', icon:'🌌', desc:'Open-source image generation model. Unlimited generations, full control, no watermarks.', score:8.8, pricing:'Free', badge:'free' },
+  { name:'Pika Labs', cat:'image', icon:'⚡', desc:'AI video generation from text or image. Create cinematic clips in seconds.', score:8.7, pricing:'Free / $8', badge:'new' },
+  { name:'HeyGen', cat:'image', icon:'🎭', desc:'Create AI avatar videos for marketing and training. Realistic presenters, no camera needed.', score:8.9, pricing:'Free / $24', badge:'top' },
+  { name:'Intercom Fin', cat:'productivity', icon:'💁', desc:'AI customer support agent that resolves 50%+ of queries instantly, 24/7.', score:8.8, pricing:'From $39', badge:'featured' },
+  { name:'Relevance AI', cat:'automation', icon:'🔗', desc:'Build and deploy AI agents for any business workflow. No ML experience required.', score:8.6, pricing:'Free / $19', badge:'new' },
+  { name:'Clearbit AI', cat:'data', icon:'🔎', desc:'AI enrichment for your CRM. Get firmographic and technographic data on every lead.', score:8.5, pricing:'From $99', badge:'' },
+  { name:'Speechify', cat:'voice', icon:'👂', desc:'Convert any text into natural-sounding speech. Read 4x faster with AI narration.', score:8.4, pricing:'Free / $139/yr', badge:'' },
+  { name:'Gamma', cat:'content', icon:'γ', desc:'AI-powered presentation and document builder. Beautiful outputs from a simple prompt.', score:8.7, pricing:'Free / $8', badge:'new' },
+];
+
+function getBadgeClass(badge) {
+  if (badge === 'featured') return 'featured';
+  if (badge === 'new') return 'new';
+  if (badge === 'top') return 'top';
+  if (badge === 'free') return 'free';
+  return '';
+}
+
+function renderTools(filter) {
+  const grid = document.getElementById('toolsGrid');
+  const filtered = filter === 'all' ? tools : tools.filter(t => t.cat === filter);
+  document.getElementById('toolsCount').textContent = filtered.length + ' tools';
+  grid.innerHTML = filtered.map(t => `
+    <div class="tool-card">
+      <div class="tc-head">
+        <div class="tc-icon">${t.icon}</div>
+        <div class="tc-badges">
+          ${t.badge ? `<span class="tc-badge ${getBadgeClass(t.badge)}">${t.badge}</span>` : ''}
+        </div>
+      </div>
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-cat">${t.cat.charAt(0).toUpperCase()+t.cat.slice(1)}</div>
+      <div class="tc-desc">${t.desc}</div>
+      <div class="tc-footer">
+        <div class="tc-score">
+          <div class="tc-score-num">${t.score}</div>
+          <div class="tc-score-den">/10</div>
+        </div>
+        <div class="tc-pricing">${t.pricing}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTools(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTools(cat);
+}
+
+// Search
+document.querySelector('.nav-search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  const grid = document.getElementById('toolsGrid');
+  const filtered = tools.filter(t => t.name.toLowerCase().includes(q) || t.cat.includes(q) || t.desc.toLowerCase().includes(q));
+  document.getElementById('toolsCount').textContent = filtered.length + ' tools';
+  grid.innerHTML = filtered.map(t => `
+    <div class="tool-card">
+      <div class="tc-head">
+        <div class="tc-icon">${t.icon}</div>
+        <div class="tc-badges">${t.badge ? `<span class="tc-badge ${getBadgeClass(t.badge)}">${t.badge}</span>` : ''}</div>
+      </div>
+      <div class="tc-name">${t.name}</div>
+      <div class="tc-cat">${t.cat.charAt(0).toUpperCase()+t.cat.slice(1)}</div>
+      <div class="tc-desc">${t.desc}</div>
+      <div class="tc-footer">
+        <div class="tc-score"><div class="tc-score-num">${t.score}</div><div class="tc-score-den">/10</div></div>
+        <div class="tc-pricing">${t.pricing}</div>
+      </div>
+    </div>
+  `).join('');
+});
+
+// Init
+renderTools('all');
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
